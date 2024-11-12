@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
+use App\Http\Controllers\API\BusinessInformationController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -24,5 +25,11 @@ Route::post('password/reset',[ResetPasswordController::class,'resetPassword']);
 Route::patch('/profile', [ProfileController::class, 'update'])->middleware('auth:sanctum');
 
 // Route::middleware('auth:sanctum')->put('profile/update', [ProfileController::class, 'update']);
-
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/business-information', [BusinessInformationController::class, 'index']);
+    Route::post('/business-information', [BusinessInformationController::class, 'store']);
+    Route::get('/business-information/{id}', [BusinessInformationController::class, 'show']);
+    Route::put('/business-information/{id}', [BusinessInformationController::class, 'update']);
+    Route::delete('/business-information/{id}', [BusinessInformationController::class, 'destroy']);
+});
 
