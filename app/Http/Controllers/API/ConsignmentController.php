@@ -11,11 +11,41 @@ use Illuminate\Validation\ValidationException;
 class ConsignmentController extends Controller
 {
     use ApiResponseTrait;
+
+    /*
     public function index()
     {
         $consignments = Consignment::all();
         return $this->ApiSendResponse('Consignment Fetched Successfully!', '201', $consignments);
     }
+    */
+    public function index(Request $request)
+    {
+        $query = Consignment::query();
+
+        if ($request->has('sort_by') && $request->has('sort_order')) {
+            $sortOrder = $request->get('sort_order') === 'desc' ? 'desc' : 'asc';
+
+            switch ($request->get('sort_by')) {
+                case 'received_date':
+                    $query->orderBy('received_date', $sortOrder);
+                    break;
+
+                case 'size':
+                    $query->orderByRaw("CAST(REGEXP_REPLACE(size, '[^0-9]', '') AS UNSIGNED) $sortOrder");
+                    break;
+
+                case 'name':
+                    $query->orderBy('consignment_id', $sortOrder);
+                    break;
+            }
+        }
+
+        $consignments = $query->get();
+        return $this->ApiSendResponse('Consignment Fetched Successfully!', '200', $consignments);
+    }
+
+
 
     public function store(Request $request)
     {
@@ -25,7 +55,7 @@ class ConsignmentController extends Controller
                 'size' => 'required|string',
                 'type' => 'required|string',
                 'shipment_status' => 'required|in:completed,pending,received,error',
-                'received_date' => 'nullable|date',
+                'received_date' => 'required|date',
                 'release_date' => 'nullable|date'
             ]);
 
@@ -46,16 +76,22 @@ class ConsignmentController extends Controller
         }
     }
 
+
+    public function show(Consignment $consignment)
+    {
+        return $this->ApiSendResponse('Consignment Showed Successfully!', '201', $consignment);
+    }
+
+
     public function update(Request $request, Consignment $consignment)
     {
-
         try {
             $data = $request->validate([
                 'consignment_id' => 'required|string',
                 'size' => 'required|string',
                 'type' => 'required|string',
                 'shipment_status' => 'required|in:completed,pending,received,error',
-                'received_date' => 'nullable|date',
+                'received_date' => 'required|date',
                 'release_date' => 'nullable|date'
             ]);
 
@@ -80,7 +116,7 @@ class ConsignmentController extends Controller
     public function destroy(Consignment $consignment)
     {
         Consignment::deleteConsignment($consignment);
-        return $this->ApiSendResponse('Consignment Deleted Successfully!', '200', $consignment);
+        return $this->ApiSendResponse('Consignment Deleted Successfully!', '204', $consignment);
     }
 
 }
