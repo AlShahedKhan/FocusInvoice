@@ -49,6 +49,7 @@ class BusinessInformationController extends Controller
                 return response()->json($validator->errors(), 400);
             }
 
+            // Automatically set user_id to the authenticated user
             $data = $request->only([
                 'company_name',
                 'company_id',
@@ -65,6 +66,7 @@ class BusinessInformationController extends Controller
 
         return response()->json(['error' => 'Unauthorized'], 401);
     }
+
 
     /**
      * Display the specified resource.
