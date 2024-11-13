@@ -42,6 +42,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/business-information/{id}', [BusinessInformationController::class, 'destroy']);
 });
 
-Route::post('paypal/create-order', [PayPalController::class, 'createOrder']);
-Route::post('paypal/capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
-Route::post('paypal/cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::post('paypal/create-order', [PayPalController::class, 'createOrder']);
+//     Route::post('paypal/capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
+//     Route::post('paypal/cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
+// });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('paypal/create-order', [PayPalController::class, 'createOrder']);
+    Route::post('paypal/capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
+    Route::get('paypal/cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
+});
