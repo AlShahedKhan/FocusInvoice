@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('consignments', function (Blueprint $table) {
             $table->id();
-            $table->string('consignment_id')->nullable();
+            $table->string('consignment_id')->unique()->nullable();
             $table->string('size')->nullable();
             $table->string('type')->nullable();
             $table->dateTime('received_date')->nullable();

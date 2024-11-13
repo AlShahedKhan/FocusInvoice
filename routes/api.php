@@ -24,7 +24,7 @@ Route::post('password/reset',[ResetPasswordController::class,'resetPassword']);
 
 Route::get('/consignments', [ConsignmentController::class, 'index']);
 Route::post('/consignments', [ConsignmentController::class, 'store']);
-Route::get('/consignments/{consignment}', [ConsignmentController::class, 'show']);
+Route::get('/consignments/{id}', [ConsignmentController::class, 'show']);
 Route::put('/consignments/{consignment}', [ConsignmentController::class, 'update']);
 Route::delete('/consignments/{consignment}', [ConsignmentController::class, 'destroy']);
 

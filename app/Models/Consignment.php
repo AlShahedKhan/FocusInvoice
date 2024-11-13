@@ -7,6 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Consignment extends Model
 {
+    // Allow mass assignment on these fields
+    protected $fillable = [
+        'consignment_id',
+        'size',
+        'type',
+        'received_date',
+        'release_date',
+        'shipment_status'
+    ];
+
     private static $consignment;
 
     private static function saveBasicInfo($consignment, $request)

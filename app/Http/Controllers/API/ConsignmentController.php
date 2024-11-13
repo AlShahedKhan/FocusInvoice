@@ -6,11 +6,21 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Consignment;
 use App\Traits\ApiResponseTrait;
+use App\Services\ConsignmentService;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
 
 class ConsignmentController extends Controller
 {
     use ApiResponseTrait;
+
+    protected $consignmentService;
+
+    public function __construct(ConsignmentService $consignmentService)
+    {
+        $this->consignmentService = $consignmentService;
+    }
 
     /*
     public function index()
@@ -21,28 +31,19 @@ class ConsignmentController extends Controller
     */
     public function index(Request $request)
     {
-        $query = Consignment::query();
+        try {
+            $filters = $request->only(['type', 'shipment_status', 'received_date', 'sort_by', 'sort_order', 'search']);
+            $consignments = $this->consignmentService->getAllConsignments($filters);
 
-        if ($request->has('sort_by') && $request->has('sort_order')) {
-            $sortOrder = $request->get('sort_order') === 'desc' ? 'desc' : 'asc';
-
-            switch ($request->get('sort_by')) {
-                case 'received_date':
-                    $query->orderBy('received_date', $sortOrder);
-                    break;
-
-                case 'size':
-                    $query->orderByRaw("CAST(REGEXP_REPLACE(size, '[^0-9]', '') AS UNSIGNED) $sortOrder");
-                    break;
-
-                case 'name':
-                    $query->orderBy('consignment_id', $sortOrder);
-                    break;
+            if ($consignments->isEmpty()) {
+                return $this->ApiSendResponse('Consignment not found', 404, null);
             }
-        }
 
-        $consignments = $query->get();
-        return $this->ApiSendResponse('Consignment Fetched Successfully!', '200', $consignments);
+            return $this->ApiSendResponse('Consignments fetched successfully!', 200, $consignments);
+
+        } catch (Exception $e) {
+            return $this->ApiSendResponse('An error occurred while fetching consignments', 500, null);
+        }
     }
 
 
@@ -59,11 +60,11 @@ class ConsignmentController extends Controller
                 'release_date' => 'nullable|date'
             ]);
 
-            Consignment::newConsignment($request);
+            $consignment = $this->consignmentService->createConsignment($data);
 
-            return $this->ApiSendResponse('Consignment Created Successfully!', '201', $data);
+            return $this->ApiSendResponse('Consignment Created Successfully!', '201', $consignment);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
@@ -77,9 +78,16 @@ class ConsignmentController extends Controller
     }
 
 
-    public function show(Consignment $consignment)
+    public function show($id)
     {
-        return $this->ApiSendResponse('Consignment Showed Successfully!', '201', $consignment);
+        try {
+            $consignment = $this->consignmentService->getConsignmentById($id);
+            return $this->ApiSendResponse('Consignment fetched successfully!', 200, $consignment);
+        } catch (ModelNotFoundException $e) {
+            return $this->ApiSendResponse('Consignment not found', 404, null);
+        } catch (Exception $e) {
+            return $this->ApiSendResponse('An error occurred while fetching the consignment', 500, null);
+        }
     }
 
 
@@ -95,11 +103,11 @@ class ConsignmentController extends Controller
                 'release_date' => 'nullable|date'
             ]);
 
-            Consignment::updateConsignment($request, $consignment);
+            $updatedConsignment = $this->consignmentService->updateConsignment($consignment, $data);
 
-            return $this->ApiSendResponse('Consignment Updated Successfully!', '200', $data);
+            return $this->ApiSendResponse('Consignment Updated Successfully!', '200', $updatedConsignment);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
@@ -115,8 +123,12 @@ class ConsignmentController extends Controller
 
     public function destroy(Consignment $consignment)
     {
-        Consignment::deleteConsignment($consignment);
-        return $this->ApiSendResponse('Consignment Deleted Successfully!', '204', $consignment);
+        try {
+            $this->consignmentService->deleteConsignment($consignment);
+            return $this->ApiSendResponse('Consignment Deleted Successfully!', 204, null);
+        } catch (Exception $e) {
+            return $this->ApiSendResponse('An error occurred while deleting the consignment', 500, null);
+        }
     }
 
 }
