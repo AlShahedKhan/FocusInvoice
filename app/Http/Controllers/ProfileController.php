@@ -14,7 +14,7 @@ class ProfileController extends Controller
 
         $validatedData = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string','max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'phone_number' => ['required', 'string', 'max:255'],
             'date_of_birth' => ['required', 'date'],
@@ -27,15 +27,15 @@ class ProfileController extends Controller
             // Handle profile picture upload
             if ($request->hasFile('profile_picture')) {
                 // Delete the old profile picture if it exists
-                if ($user->profile_picture && Storage::exists($user->profile_picture)) {
-                    Storage::delete($user->profile_picture);
+                if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+                    Storage::disk('public')->delete($user->profile_picture);
                 }
 
                 // Store the new profile picture and update the path in the validated data
                 $filePath = $request->file('profile_picture')->store('uploads', 'public');
 
-                // Remove 'public/' prefix for storing in the database
-                $validatedData['profile_picture'] = str_replace('public/', '', $filePath);
+                // No need to remove the 'public/' prefix since you are storing it directly in the public disk
+                $validatedData['profile_picture'] = $filePath;
             }
 
             $user->update($validatedData);
