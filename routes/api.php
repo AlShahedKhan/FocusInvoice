@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\API\ConsignmentController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\API\BusinessInformationController;
+use App\Http\Controllers\Api\PayPalController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -41,4 +42,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/business-information/{id}', [BusinessInformationController::class, 'destroy']);
 });
 
-
+Route::post('paypal/create-order', [PayPalController::class, 'createOrder']);
+Route::post('paypal/capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
+Route::post('paypal/cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
