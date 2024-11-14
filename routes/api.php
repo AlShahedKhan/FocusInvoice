@@ -31,7 +31,12 @@ Route::put('/consignments/{consignment}', [ConsignmentController::class, 'update
 Route::delete('/consignments/{consignment}', [ConsignmentController::class, 'destroy']);
 
 // Route::post('/profile/profile', [ProfileController::class, 'update'])->middleware('auth:sanctum');
-Route::post('/profile/profile', [ProfileController::class, 'update'])->middleware('auth:sanctum');
+// Route::get('/profile/profile', [ProfileController::class, 'show'])->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/profile/profile', [ProfileController::class, 'update']);
+    Route::get('/profile/profile', [ProfileController::class, 'show']);
+});
+
 
 
 // Route::middleware('auth:sanctum')->put('profile/update', [ProfileController::class, 'update']);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
@@ -60,5 +61,31 @@ class ProfileController extends Controller
             \Log::error('Error updating profile: ' . $e->getMessage());
             return response()->json(['message' => 'An error occurred while updating the profile.'], 500);
         }
+    }
+
+    public function show(Request $request)
+    {
+        Log::info('Entering show method');
+        $user = $request->user();
+        Log::info('User details:', ['user' => $user]);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+
+        $fileUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
+
+        return response()->json([
+            'message' => 'Profile retrieved successfully.',
+            'data' => [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+                'date_of_birth' => $user->date_of_birth,
+                'profile_picture' => $fileUrl,
+            ],
+        ], 200);
     }
 }
