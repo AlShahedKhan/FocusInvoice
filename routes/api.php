@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\Api\PayPalController;
+use App\Http\Controllers\InviteCodeController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\API\ConsignmentController;
 use App\Http\Controllers\Api\Auth\ResetPasswordController;
@@ -31,12 +32,14 @@ Route::get('/consignments/{consignment}', [ConsignmentController::class, 'show']
 Route::put('/consignments/{consignment}', [ConsignmentController::class, 'update']);
 Route::delete('/consignments/{consignment}', [ConsignmentController::class, 'destroy']);
 
-// Route::post('/profile/profile', [ProfileController::class, 'update'])->middleware('auth:sanctum');
-// Route::get('/profile/profile', [ProfileController::class, 'show'])->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/profile', [ProfileController::class, 'update']);
     Route::get('/profile/profile', [ProfileController::class, 'show']);
     Route::delete('/profile/profile', [ProfileController::class, 'deleteAccount']);  // Delete profile
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/invite-code/generate', [InviteCodeController::class, 'generateInviteCode']); // Generate invite code (Admin only)
 });
 
 Route::middleware('auth:sanctum')->group(function () {

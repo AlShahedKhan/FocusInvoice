@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Models\InviteCode;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -18,14 +19,33 @@ class AuthController extends Controller
             'invite_code' => ['required', 'string', 'max:255'],
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'is_admin' => 'sometimes|boolean' // Add this to allow registering as admin for testing
         ]);
 
+        // Validate invite code from the database
+        $inviteCode = InviteCode::where('code', $request->invite_code)
+            ->where('is_used', false)
+            ->first();
+
+        if (!$inviteCode) {
+            return response()->json(['message' => 'Invalid or already used invite code.'], 400);
+        }
+
+        // Create the new user
         $user = User::create([
             'invite_code' => $request->invite_code,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'is_admin' => $request->has('is_admin') ? $request->is_admin : false,
         ]);
 
+        // Mark the invite code as used
+        $inviteCode->update([
+            'is_used' => true,
+            'used_by' => $user->id,
+        ]);
+
+        // Create an authentication token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json(['access_token' => $token, 'token_type' => 'Bearer'], 201);

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('phone_number')->nullable();  // Phone Number field
             $table->date('date_of_birth')->nullable();  // Date of Birth field
             $table->string('profile_picture')->nullable();  // Profile Picture field
+            $table->boolean('is_admin')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

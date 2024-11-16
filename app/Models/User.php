@@ -28,6 +28,7 @@ class User extends Authenticatable
         'phone_number',      // Add phone number to fillable
         'date_of_birth',    // Add date of birth to fillable
         'profile_picture',  // Add profile picture to fillable
+        'is_admin',         // Add is_admin to fillable
     ];
 
     /**

@@ -96,6 +96,9 @@ class ProfileController extends Controller
         if (!$user) {
             return response()->json(['message' => 'User not authenticated.'], 401);
         }
+        if (!$user->is_admin) {
+            return response()->json(['message' => 'Admin account cannot be deleted.'], 403);
+        }
 
         try {
             // Delete the user's profile picture if it exists
