@@ -88,4 +88,30 @@ class ProfileController extends Controller
             ],
         ], 200);
     }
+
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated.'], 401);
+        }
+
+        try {
+            // Delete the user's profile picture if it exists
+            if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            // Delete the user account
+            $user->delete();
+
+            return response()->json([
+                'message' => 'Account deleted successfully.'
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error deleting account: ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred while deleting the account.'], 500);
+        }
+    }
 }

@@ -4,11 +4,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\Api\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\PayPalController;
+use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\API\ConsignmentController;
+use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\API\BusinessInformationController;
-use App\Http\Controllers\Api\PayPalController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -35,6 +36,11 @@ Route::delete('/consignments/{consignment}', [ConsignmentController::class, 'des
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/profile', [ProfileController::class, 'update']);
     Route::get('/profile/profile', [ProfileController::class, 'show']);
+    Route::delete('/profile/profile', [ProfileController::class, 'deleteAccount']);  // Delete profile
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/profile/change-password', [ChangePasswordController::class, 'updatePassword']);
 });
 
 
