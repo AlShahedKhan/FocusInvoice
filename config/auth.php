@@ -13,10 +13,15 @@ return [
     |
     */
 
+    // 'defaults' => [
+    //     'guard' => env('AUTH_GUARD', 'web'),
+    //     'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+    // ],
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
+        'guard' => env('AUTH_GUARD', 'api'), // Default guard for APIs
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
+
 
     /*
     |--------------------------------------------------------------------------
@@ -41,9 +46,9 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-        'driver' => 'jwt', // Use 'jwt' driver for API authentication
-        'provider' => 'users',
-    ],
+            'driver' => 'jwt', // Use 'jwt' driver for API authentication
+            'provider' => 'users',
+        ],
     ],
 
     /*

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -33,13 +34,21 @@ class AuthenticateJWT
             }
 
             // Attach user to the request and ensure Auth::user() works
+            // $request->setUserResolver(function () use ($user) {
+            //     Auth::login($user); // Log the user into the session
+            //     return $user;
+            // });
             $request->setUserResolver(function () use ($user) {
-                Auth::login($user); // Log the user into the session
+                if (!Auth::guard('api')->check()) {
+                    Auth::guard('api')->login($user); // Use the api guard to log in the user
+                    Log::info('User logged in via middleware with API guard:', ['user' => $user]);
+                }
                 return $user;
             });
 
-            Log::info('JWT Middleware: User retrieved successfully', ['user' => $user]);
 
+
+            Log::info('JWT Middleware: User retrieved successfully', ['user' => $user]);
         } catch (\Exception $e) {
             Log::error('JWT Error:', ['message' => $e->getMessage()]);
             return response()->json(['error' => 'Invalid token', 'message' => $e->getMessage()], 401);

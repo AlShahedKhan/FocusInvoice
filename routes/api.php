@@ -42,6 +42,13 @@ Route::middleware('auth.jwt')->group(function () {
     //     Route::put('{id}', [BusinessInformationController::class, 'update']);
     //     Route::delete('{id}', [BusinessInformationController::class, 'destroy']);
     // });
+
+     // PayPal routes
+    //  Route::prefix('paypal')->group(function () {
+    //     Route::post('create-order', [PayPalController::class, 'createOrder']);
+    //     Route::post('capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
+    //     Route::get('cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
+    // });
 });
 Route::middleware('auth.jwt')->prefix('business-information')->group(function () {
     Route::get('/', [BusinessInformationController::class, 'index']);
@@ -49,6 +56,11 @@ Route::middleware('auth.jwt')->prefix('business-information')->group(function ()
     Route::get('{id}', [BusinessInformationController::class, 'show']);
     Route::put('{id}', [BusinessInformationController::class, 'update']);
     Route::delete('{id}', [BusinessInformationController::class, 'destroy']);
+});
+Route::middleware('auth.jwt')->prefix('paypal')->group(function () {
+    Route::post('create-order', [PayPalController::class, 'createOrder']);
+    Route::post('capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
+    Route::get('cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
 });
 
 
@@ -68,12 +80,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-    // PayPal routes
-    Route::prefix('paypal')->group(function () {
-        Route::post('create-order', [PayPalController::class, 'createOrder']);
-        Route::post('capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
-        Route::get('cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
-    });
+    // // PayPal routes
+    // Route::prefix('paypal')->group(function () {
+    //     Route::post('create-order', [PayPalController::class, 'createOrder']);
+    //     Route::post('capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
+    //     Route::get('cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
+    // });
 });
 
 // Consignment routes

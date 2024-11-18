@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
-use Srmklive\PayPal\Services\PayPal as PayPalClient;
-use App\Http\Controllers\Controller;
-use App\Mail\PaymentSuccessful;
 use App\Models\Payment;
+use Illuminate\Http\Request;
+use App\Mail\PaymentSuccessful;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
 class PayPalController extends Controller
 {
@@ -38,6 +39,12 @@ class PayPalController extends Controller
     }
     public function captureOrder(Request $request)
     {
+        Log::info('Authenticated User in captureOrder:', ['user' => Auth::user()]);
+
+        if (!Auth::check()) {
+            return response()->json(['error' => 'User is not authenticated.'], 401);
+        }
+
         $provider = new PayPalClient;
         $provider->setApiCredentials(config('paypal'));
         $provider->getAccessToken();
@@ -45,10 +52,6 @@ class PayPalController extends Controller
         $response = $provider->capturePaymentOrder($request->orderID);
 
         if (isset($response['status']) && $response['status'] === 'COMPLETED') {
-            if (!Auth::check()) {
-                return response()->json(['error' => 'User is not authenticated.'], 401);
-            }
-
             $payment = new Payment();
             $payment->user_id = Auth::id();
             $payment->order_id = $request->orderID;
@@ -57,7 +60,6 @@ class PayPalController extends Controller
             $payment->currency = $response['purchase_units'][0]['payments']['captures'][0]['amount']['currency_code'];
             $payment->save();
 
-            // Send email notification
             Mail::to(Auth::user()->email)->send(new PaymentSuccessful($payment));
 
             return response()->json(['success' => 'Transaction completed, saved to database, and notification sent.']);
@@ -65,6 +67,8 @@ class PayPalController extends Controller
 
         return response()->json(['error' => 'Transaction failed.'], 500);
     }
+
+
 
     public function cancelOrder()
     {
