@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\BusinessInformation;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
     /**
@@ -20,15 +19,15 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'first_name', // Add first name to fillable
-        'last_name', // Add last name to fillable
+        'first_name',
+        'last_name',
         'invite_code',
         'email',
         'password',
-        'phone_number',      // Add phone number to fillable
-        'date_of_birth',    // Add date of birth to fillable
-        'profile_picture',  // Add profile picture to fillable
-        'is_admin',         // Add is_admin to fillable
+        'phone_number',
+        'date_of_birth',
+        'profile_picture',
+        'is_admin',
     ];
 
     /**
@@ -42,7 +41,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -60,5 +59,25 @@ class User extends Authenticatable
     public function businessInformation()
     {
         return $this->hasOne(BusinessInformation::class);
+    }
+
+    /**
+     * Get the identifier that will be stored in the JWT subject claim.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey(); // Return the primary key (id) of the user
+    }
+
+    /**
+     * Return a key-value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }

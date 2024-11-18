@@ -33,23 +33,8 @@ Route::middleware('auth.jwt')->group(function () {
     });
 
     Route::post('invite-code/generate', [InviteCodeController::class, 'generateInviteCode']);
-
-    // Business Information routes
-    // Route::prefix('business-information')->group(function () {
-    //     Route::get('/', [BusinessInformationController::class, 'index']);
-    //     Route::post('/', [BusinessInformationController::class, 'store']);
-    //     Route::get('{id}', [BusinessInformationController::class, 'show']);
-    //     Route::put('{id}', [BusinessInformationController::class, 'update']);
-    //     Route::delete('{id}', [BusinessInformationController::class, 'destroy']);
-    // });
-
-     // PayPal routes
-    //  Route::prefix('paypal')->group(function () {
-    //     Route::post('create-order', [PayPalController::class, 'createOrder']);
-    //     Route::post('capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
-    //     Route::get('cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
-    // });
 });
+
 Route::middleware('auth.jwt')->prefix('business-information')->group(function () {
     Route::get('/', [BusinessInformationController::class, 'index']);
     Route::post('/', [BusinessInformationController::class, 'store']);
@@ -57,35 +42,11 @@ Route::middleware('auth.jwt')->prefix('business-information')->group(function ()
     Route::put('{id}', [BusinessInformationController::class, 'update']);
     Route::delete('{id}', [BusinessInformationController::class, 'destroy']);
 });
+
 Route::middleware('auth.jwt')->prefix('paypal')->group(function () {
     Route::post('create-order', [PayPalController::class, 'createOrder']);
     Route::post('capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
     Route::get('cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
-});
-
-
-// Protected routes (auth:sanctum)
-Route::middleware('auth:sanctum')->group(function () {
-
-    // Profile routes
-    // Route::prefix('profile')->group(function () {
-    //     Route::post('update', [ProfileController::class, 'update']);
-    //     Route::get('show', [ProfileController::class, 'show']);
-    //     Route::delete('delete', [ProfileController::class, 'deleteAccount']);
-    //     Route::post('change-password', [ChangePasswordController::class, 'updatePassword']);
-    // });
-
-    // // Invite Code routes (Admin only)
-    // Route::post('invite-code/generate', [InviteCodeController::class, 'generateInviteCode']);
-
-
-
-    // // PayPal routes
-    // Route::prefix('paypal')->group(function () {
-    //     Route::post('create-order', [PayPalController::class, 'createOrder']);
-    //     Route::post('capture-order', [PayPalController::class, 'captureOrder'])->name('paypal.capture-order');
-    //     Route::get('cancel-order', [PayPalController::class, 'cancelOrder'])->name('paypal.cancel-order');
-    // });
 });
 
 // Consignment routes
