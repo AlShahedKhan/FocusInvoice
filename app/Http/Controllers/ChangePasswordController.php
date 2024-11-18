@@ -14,7 +14,7 @@ class ChangePasswordController extends Controller
      */
     public function updatePassword(Request $request)
     {
-        Log::info('Entering show method');
+        Log::info('Entering updatePassword method');
         $user = $request->user();
         Log::info('User details:', ['user' => $user]);
 
@@ -30,9 +30,12 @@ class ChangePasswordController extends Controller
 
         // Verify that the provided current password matches the stored password
         if (!Hash::check($validatedData['current_password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'current_password' => ['The provided password does not match your current password.'],
-            ]);
+            Log::info('Password mismatch for user', ['user_id' => $user->id]);
+            return response()->json([
+                'errors' => [
+                    'current_password' => ['The provided password does not match your current password.'],
+                ]
+            ], 422);
         }
 
         // Hash and update the new password
@@ -44,4 +47,5 @@ class ChangePasswordController extends Controller
             'message' => 'Password changed successfully.',
         ], 200);
     }
+
 }

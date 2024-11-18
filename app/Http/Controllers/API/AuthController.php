@@ -48,7 +48,8 @@ class AuthController extends Controller
         // Create an authentication token
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['access_token' => $token, 'token_type' => 'Bearer'], 201);
+        return response()->json(['token' => $token, 'token_type' => 'Bearer'])
+        ->cookie('token', $token, 60, '/', 'focusinvoice.test', true, true);
     }
 
     public function login(Request $request)
@@ -67,13 +68,18 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['access_token' => $token, 'token_type' => 'Bearer'], 200);
+        return response()->json(['token' => $token, 'token_type' => 'Bearer'])
+        ->cookie('token', $token, 60, '/', 'focusinvoice.test', true, true);
+        // ->cookie($token,60);
+
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully'], 200);
+        return response()->json(['message' => 'Logged out successfully'], 200)
+            ->cookie('token', '', -1); // Delete the cookie
     }
+
 }
