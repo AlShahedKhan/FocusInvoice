@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Http\Middleware\AuthenticateJWT;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 class MiddlewareServiceProvider extends ServiceProvider
@@ -20,6 +21,10 @@ class MiddlewareServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->app['router']->aliasMiddleware('sanctum', EnsureFrontendRequestsAreStateful::class);
+        $router = $this->app['router'];
+
+        // Register route-specific middleware here
+        $router->aliasMiddleware('sanctum', EnsureFrontendRequestsAreStateful::class);
+        $router->aliasMiddleware('auth.jwt', AuthenticateJWT::class);
     }
 }

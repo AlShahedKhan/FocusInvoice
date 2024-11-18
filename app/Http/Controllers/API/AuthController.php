@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -19,10 +22,9 @@ class AuthController extends Controller
             'invite_code' => ['required', 'string', 'max:255'],
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'is_admin' => 'sometimes|boolean' // Add this to allow registering as admin for testing
+            'is_admin' => 'sometimes|boolean'
         ]);
 
-        // Validate invite code from the database
         $inviteCode = InviteCode::where('code', $request->invite_code)
             ->where('is_used', false)
             ->first();
@@ -45,11 +47,40 @@ class AuthController extends Controller
             'used_by' => $user->id,
         ]);
 
-        // Create an authentication token
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Create a JWT token payload with unique components
+        $payload = [
+            'iss' => "focusinvoice",           // Issuer
+            'sub' => $user->id,                // Subject (user ID)
+            'iat' => time(),                   // Issued at (always changes)
+            'exp' => time() + 60 * 60,         // Expiry time (1 hour)
+            'is_admin' => $user->is_admin,     // Is admin (true/false)
+            'random' => Str::random(124),      // Add extra randomness to ensure the token changes each time
+        ];
 
-        return response()->json(['token' => $token, 'token_type' => 'Bearer'])
-        ->cookie('token', $token, 60, '/', 'focusinvoice.test', true, true);
+        $jwt = JWT::encode($payload, env('JWT_SECRET'), 'HS256');
+
+        // Decode the JWT token (for demonstration purposes)
+        try {
+            $decoded = JWT::decode($jwt, new Key(env('JWT_SECRET'), 'HS256'));
+
+            // If you want to do anything with the decoded token:
+            $decodedData = [
+                'issuer' => $decoded->iss,
+                'user_id' => $decoded->sub,
+                'issued_at' => $decoded->iat,
+                'expires_at' => $decoded->exp,
+                'is_admin' => $decoded->is_admin, // Include is_admin status
+            ];
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to decode token: ' . $e->getMessage()], 401);
+        }
+
+        return response()->json([
+            'token' => $jwt,
+            'token_type' => 'Bearer',
+            'expires_in' => 60 * 60,
+            'decoded' => $decodedData, // Optionally include decoded data in response
+        ])->cookie('token', $jwt, 60, '/', 'focusinvoice.test', true, true);
     }
 
     public function login(Request $request)
@@ -65,21 +96,56 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user = Auth::user();
 
-        return response()->json(['token' => $token, 'token_type' => 'Bearer'])
-        ->cookie('token', $token, 60, '/', 'focusinvoice.test', true, true);
-        // ->cookie($token,60);
+        // Create a JWT token payload with unique components
+        $payload = [
+            'iss' => "focusinvoice",           // Issuer
+            'sub' => $user->id,                // Subject (user ID)
+            'iat' => time(),                   // Issued at (always changes)
+            'exp' => time() + 60 * 60,         // Expiry time (1 hour)
+            'is_admin' => $user->is_admin,     // Is admin (true/false)
+            'random' => Str::random(124),       // Add extra randomness to ensure the token changes each time
+        ];
 
+        $jwt = JWT::encode($payload, env('JWT_SECRET'), 'HS256');
+
+        // Decode the JWT token (for demonstration purposes)
+        try {
+            $decoded = JWT::decode($jwt, new Key(env('JWT_SECRET'), 'HS256'));
+
+            // If you want to do anything with the decoded token:
+            $decodedData = [
+                'issuer' => $decoded->iss,
+                'user_id' => $decoded->sub,
+                'issued_at' => $decoded->iat,
+                'expires_at' => $decoded->exp,
+                'is_admin' => $decoded->is_admin, // Include is_admin status
+            ];
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to decode token: ' . $e->getMessage()], 401);
+        }
+
+        return response()->json([
+            'token' => $jwt,
+            'token_type' => 'Bearer',
+            'expires_in' => 60 * 60,  // 1 hour
+            'decoded' => $decodedData, // Optionally include decoded data in response
+        ])->cookie('token', $jwt, 60, '/', 'focusinvoice.test', true, true);
     }
+
+
+
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->bearerToken();
 
-        return response()->json(['message' => 'Logged out successfully'], 200)
-            ->cookie('token', '', -1); // Delete the cookie
+        if ($token) {
+            return response()->json(['message' => 'Logged out successfully'], 200)
+                ->cookie('token', '', -1); // Remove the token from the cookie
+        }
+
+        return response()->json(['error' => 'Token not provided'], 400);
     }
-
 }

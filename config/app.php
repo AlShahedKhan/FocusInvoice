@@ -133,7 +133,7 @@ return [
 
     ])->toArray(),
 
- 'aliases' => Facade::defaultAliases()->merge([
+    'aliases' => Facade::defaultAliases()->merge([
 
         'Otp' => Ichtrojan\Otp\Otp::class,
         App\Providers\MiddlewareServiceProvider::class, // Register the MiddlewareServiceProvider

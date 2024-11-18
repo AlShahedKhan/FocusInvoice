@@ -16,17 +16,15 @@ use App\Http\Controllers\API\BusinessInformationController;
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login', 'login');
-    Route::post('logout', 'logout')->middleware('auth:sanctum');
+    Route::post('logout', 'logout')->middleware('auth.jwt'); // Use JWT middleware here
 });
+
 
 // Password management
 Route::post('password/forgot', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('password/reset', [ResetPasswordController::class, 'resetPassword']);
 
-// Protected routes (auth:sanctum)
-Route::middleware('auth:sanctum')->group(function () {
-
-    // Profile routes
+Route::middleware('auth.jwt')->group(function () {
     Route::prefix('profile')->group(function () {
         Route::post('update', [ProfileController::class, 'update']);
         Route::get('show', [ProfileController::class, 'show']);
@@ -34,17 +32,41 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('change-password', [ChangePasswordController::class, 'updatePassword']);
     });
 
-    // Invite Code routes (Admin only)
     Route::post('invite-code/generate', [InviteCodeController::class, 'generateInviteCode']);
 
     // Business Information routes
-    Route::prefix('business-information')->group(function () {
-        Route::get('/', [BusinessInformationController::class, 'index']);
-        Route::post('/', [BusinessInformationController::class, 'store']);
-        Route::get('{id}', [BusinessInformationController::class, 'show']);
-        Route::put('{id}', [BusinessInformationController::class, 'update']);
-        Route::delete('{id}', [BusinessInformationController::class, 'destroy']);
-    });
+    // Route::prefix('business-information')->group(function () {
+    //     Route::get('/', [BusinessInformationController::class, 'index']);
+    //     Route::post('/', [BusinessInformationController::class, 'store']);
+    //     Route::get('{id}', [BusinessInformationController::class, 'show']);
+    //     Route::put('{id}', [BusinessInformationController::class, 'update']);
+    //     Route::delete('{id}', [BusinessInformationController::class, 'destroy']);
+    // });
+});
+Route::middleware('auth.jwt')->prefix('business-information')->group(function () {
+    Route::get('/', [BusinessInformationController::class, 'index']);
+    Route::post('/', [BusinessInformationController::class, 'store']);
+    Route::get('{id}', [BusinessInformationController::class, 'show']);
+    Route::put('{id}', [BusinessInformationController::class, 'update']);
+    Route::delete('{id}', [BusinessInformationController::class, 'destroy']);
+});
+
+
+// Protected routes (auth:sanctum)
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Profile routes
+    // Route::prefix('profile')->group(function () {
+    //     Route::post('update', [ProfileController::class, 'update']);
+    //     Route::get('show', [ProfileController::class, 'show']);
+    //     Route::delete('delete', [ProfileController::class, 'deleteAccount']);
+    //     Route::post('change-password', [ChangePasswordController::class, 'updatePassword']);
+    // });
+
+    // // Invite Code routes (Admin only)
+    // Route::post('invite-code/generate', [InviteCodeController::class, 'generateInviteCode']);
+
+
 
     // PayPal routes
     Route::prefix('paypal')->group(function () {

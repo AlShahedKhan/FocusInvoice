@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use App\Models\BusinessInformation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Models\BusinessInformation;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class BusinessInformationController extends Controller
 {
@@ -15,15 +16,19 @@ class BusinessInformationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        Log::info('Business Info Index: User from Auth', ['user' => Auth::user()]);
+        Log::info('Business Info Index: User from Request', ['user' => $request->user()]);
+
         $user = Auth::user();
-        if ($user) {
-            $businessInformation = BusinessInformation::where('user_id', $user->id)->get();
-            return response()->json($businessInformation, 200);
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        $businessInformation = BusinessInformation::where('user_id', $user->id)->get();
+        return response()->json($businessInformation, 200);
     }
 
     /**
@@ -34,39 +39,41 @@ class BusinessInformationController extends Controller
      */
     public function store(Request $request)
     {
+        Log::info('Business Info Store: User from Auth', ['user' => Auth::user()]);
+        Log::info('Business Info Store: User from Request', ['user' => $request->user()]);
+
         $user = Auth::user();
-        if ($user) {
-            $validator = Validator::make($request->all(), [
-                'company_name' => 'required|string|max:255',
-                'company_id' => 'nullable|string|max:255',
-                'tax_identification_number' => 'nullable|string|max:255',
-                'company_email' => 'required|email|max:255',
-                'company_phone_number' => 'required|string|max:20',
-                'company_address' => 'required|string|max:255',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json($validator->errors(), 400);
-            }
-
-            // Automatically set user_id to the authenticated user
-            $data = $request->only([
-                'company_name',
-                'company_id',
-                'tax_identification_number',
-                'company_email',
-                'company_phone_number',
-                'company_address'
-            ]);
-            $data['user_id'] = $user->id;
-
-            $businessInformation = BusinessInformation::create($data);
-            return response()->json($businessInformation, 201);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
-    }
+        $validator = Validator::make($request->all(), [
+            'company_name' => 'required|string|max:255',
+            'company_id' => 'nullable|string|max:255',
+            'tax_identification_number' => 'nullable|string|max:255',
+            'company_email' => 'required|email|max:255',
+            'company_phone_number' => 'required|string|max:20',
+            'company_address' => 'required|string|max:255',
+        ]);
 
+        if ($validator->fails()) {
+            Log::error('Validation Error:', ['errors' => $validator->errors()]);
+            return response()->json($validator->errors(), 400);
+        }
+
+        $data = $request->only([
+            'company_name',
+            'company_id',
+            'tax_identification_number',
+            'company_email',
+            'company_phone_number',
+            'company_address'
+        ]);
+        $data['user_id'] = $user->id;
+
+        $businessInformation = BusinessInformation::create($data);
+        return response()->json($businessInformation, 201);
+    }
 
     /**
      * Display the specified resource.
@@ -74,18 +81,23 @@ class BusinessInformationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request,$id)
     {
+        Log::info('Business Info Index: User from Auth', ['user' => Auth::user()]);
+        Log::info('Business Info Index: User from Request', ['user' => $request->user()]);
+
         $user = Auth::user();
-        if ($user) {
-            $businessInformation = BusinessInformation::where('id', $id)->where('user_id', $user->id)->first();
-            if ($businessInformation) {
-                return response()->json($businessInformation, 200);
-            }
-            return response()->json(['error' => 'Not Found'], 404);
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        $businessInformation = BusinessInformation::where('id', $id)->where('user_id', $user->id)->first();
+        if ($businessInformation) {
+            return response()->json($businessInformation, 200);
+        }
+
+        return response()->json(['error' => 'Not Found'], 404);
     }
 
     /**
@@ -97,37 +109,41 @@ class BusinessInformationController extends Controller
      */
     public function update(Request $request, $id)
     {
+        Log::info('Business Info Store: User from Auth', ['user' => Auth::user()]);
+        Log::info('Business Info Store: User from Request', ['user' => $request->user()]);
+
         $user = Auth::user();
-        if ($user) {
-            $validator = Validator::make($request->all(), [
-                'company_name' => 'sometimes|required|string|max:255',
-                'company_id' => 'nullable|string|max:255',
-                'tax_identification_number' => 'nullable|string|max:255',
-                'company_email' => 'sometimes|required|email|max:255',
-                'company_phone_number' => 'sometimes|required|string|max:20',
-                'company_address' => 'sometimes|required|string|max:255',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json($validator->errors(), 400);
-            }
-
-            $businessInformation = BusinessInformation::where('id', $id)->where('user_id', $user->id)->first();
-            if ($businessInformation) {
-                $businessInformation->update($request->only([
-                    'company_name',
-                    'company_id',
-                    'tax_identification_number',
-                    'company_email',
-                    'company_phone_number',
-                    'company_address'
-                ]));
-                return response()->json($businessInformation, 200);
-            }
-            return response()->json(['error' => 'Not Found'], 404);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        $validator = Validator::make($request->all(), [
+            'company_name' => 'sometimes|required|string|max:255',
+            'company_id' => 'nullable|string|max:255',
+            'tax_identification_number' => 'nullable|string|max:255',
+            'company_email' => 'sometimes|required|email|max:255',
+            'company_phone_number' => 'sometimes|required|string|max:20',
+            'company_address' => 'sometimes|required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $businessInformation = BusinessInformation::where('id', $id)->where('user_id', $user->id)->first();
+        if ($businessInformation) {
+            $businessInformation->update($request->only([
+                'company_name',
+                'company_id',
+                'tax_identification_number',
+                'company_email',
+                'company_phone_number',
+                'company_address'
+            ]));
+            return response()->json($businessInformation, 200);
+        }
+
+        return response()->json(['error' => 'Not Found'], 404);
     }
 
     /**
@@ -136,18 +152,22 @@ class BusinessInformationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request,$id)
     {
+        Log::info('Business Info Store: User from Auth', ['user' => Auth::user()]);
+        Log::info('Business Info Store: User from Request', ['user' => $request->user()]);
+
         $user = Auth::user();
-        if ($user) {
-            $businessInformation = BusinessInformation::where('id', $id)->where('user_id', $user->id)->first();
-            if ($businessInformation) {
-                $businessInformation->delete();
-                return response()->json(null, 204);
-            }
-            return response()->json(['error' => 'Not Found'], 404);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        $businessInformation = BusinessInformation::where('id', $id)->where('user_id', $user->id)->first();
+        if ($businessInformation) {
+            $businessInformation->delete();
+            return response()->json(null, 204);
+        }
+
+        return response()->json(['error' => 'Not Found'], 404);
     }
 }

@@ -15,9 +15,11 @@ class InviteCodeController extends Controller
      */
     public function generateInviteCode(Request $request)
     {
+        // Retrieve the authenticated user
         $user = $request->user();
 
-        if (!$user->is_admin) {
+        // Ensure the user is an admin
+        if (!$user || !$user->is_admin) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
